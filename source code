@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Language Translator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f4f4f4;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    textarea, select, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 1rem;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 10px;
+      background: #e9ffe9;
+      border: 1px solid #c3e6c3;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Translate Text</h2>
+    <textarea id="inputText" rows="4" placeholder="Enter text here..."></textarea>
+
+    <label for="sourceLang">Source Language:</label>
+    <select id="sourceLang">
+      <option value="en">English</option>
+      <option value="es">Spanish</option>
+      <option value="fr">French</option>
+      <option value="de">German</option>
+      <option value="auto">Auto Detect</option>
+    </select>
+
+    <label for="targetLang">Target Language:</label>
+    <select id="targetLang">
+      <option value="es">Spanish</option>
+      <option value="en">English</option>
+      <option value="fr">French</option>
+      <option value="de">German</option>
+    </select>
+
+    <button onclick="translateText()">Translate</button>
+
+    <div id="result"></div>
+    <button onclick="copyText()">Copy</button>
+    <button onclick="speakText()">🔊 Speak</button>
+  </div>
+
+  <script>
+    const subscriptionKey = 'YOUR_SUBSCRIPTION_KEY';
+    const endpoint = 'https://api.cognitive.microsofttranslator.com/';
+    const region = 'YOUR_RESOURCE_REGION'; // e.g., "eastus"
+
+    async function translateText() {
+      const text = document.getElementById('inputText').value;
+      const fromLang = document.getElementById('sourceLang').value;
+      const toLang = document.getElementById('targetLang').value;
+
+      const url = `${endpoint}translate?api-version=3.0&to=${toLang}` + 
+                  (fromLang !== 'auto' ? `&from=${fromLang}` : '');
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Ocp-Apim-Subscription-Key': subscriptionKey,
+          'Ocp-Apim-Subscription-Region': region,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify([{ Text: text }])
+      });
+
+      const data = await response.json();
+      const translated = data[0].translations[0].text;
+      document.getElementById('result').innerText = translated;
+    }
+
+    function copyText() {
+      const result = document.getElementById('result').innerText;
+      navigator.clipboard.writeText(result)
+        .then(() => alert('Copied to clipboard!'));
+    }
+
+    function speakText() {
+      const text = document.getElementById('result').innerText;
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>
